@@ -1,0 +1,121 @@
+
+\hypertarget{sec:intro}{%
+\section{Introduction}\label{sec:intro}}
+
+The accurate estimation of uncertainties in deep learning is a critical
+component for deploying them in real-world applications. This has led to
+significant interest in developing techniques to estimate uncertainty in
+deep neural networks \cite{mena2021survey} \cite{abdar2021review}. For embodied agents like autonomous
+car and robots, uncertainty estimation of deep learning models is
+particularly important as it can increase the dependability attributes
+like safety, reliability, robustness of the embodied agents, enabling
+better decision-making in complex environments where uncertainty is
+always present. However, evaluating the effectiveness of uncertainty
+estimation in deep learning is challenging due to the absence of ground
+truth data against which its performance can be measured.
+
+Evaluation of the uncertainty estimation method in the absence of ground
+truth is a challenging problem. Uncertainty estimation methods are
+evaluated using uncertainty metrics or proper scoring rules \cite{lakshminarayanan2017simple} \cite{gneiting2007strictly},
+benchmarking with Bayesian networks outputs \cite{wilson2022evaluating}, reliability
+evaluation with out-of-distribution data  \cite{sensoy2018evidential} \cite{kristiadi2021learnable} \cite{kristiadi2020being} and robustness
+evaluation with adversarial attack\cite{sensoy2018evidential} \cite{van2020uncertainty} \cite{liu2020simple}  or corrupted data \cite{joppich2022classification} \cite{hendrycks2020augmix}. Even
+though these evaluation methods are good metrics for assessing the
+effectiveness of uncertainty estimation they are limited in evaluating
+only the performance, reliability and robustness. These evaluation
+methods fail to evaluate the effectiveness of the uncertainties in the
+case of their usage in embodied agents like autonomous car or domestic robots.
+
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=\textwidth]{images/testing_based_approach.png}
+	\caption[Overview of evaluation of uncertainty estimation]{Concept overview of the evaluation of uncertainty estimated from DNN's in embodied agents for decision making and control. }
+	\label{fig:overview}
+\end{figure*}
+
+Deep neural networks (DNN) have become the de-facto method for perception in robotics due to their exceptional performance with high dimensional data. The output of these networks are utilized to make autonomous decisions for planning and control of the robots. Since the networks are stochastic in nature and also there is noise in sensors we use the probabilistic output of the networks to estimate the state of the environment. These probabilistic outputs are then used as the measurement model in filtering techniques such as the Kalman filter \cite{9746732} \cite{revach2022kalmannet}, Bayes filter \cite{pankert2021deep} or particle filter \cite{karkus2018particle}, which can then be used for state estimation, decision-making under uncertainty and control applications. However, there are no proper evaluation methods to evaluate how the probabilistic outputs of the DNN can be utilized in statistical models, which poses a challenge for real-world applications of DNNs in robotics.
+
+%\begin{figure}[t]
+%	\centering
+%	\includegraphics[width=0.25\linewidth]{images/overview}
+%	\includegraphics[width=0.60\linewidth]{images/robot_v11}
+%	%\includegraphics[width=1\linewidth]{images/Constraint_based_dataset_generation_1.png}
+%	\caption[Overview of usage of uncertainty estimation]{Concept overview of the usage of uncertainty estimation from DNN's in embodied agents for decision making and control. 
+%	Robot with camera perceiving a scene.}
+%	\label{fig:overview}
+%\end{figure}
+%
+%~~For example, suppose we are trying to estimate the class of the objects in a cluttered scene using object classification. We use a DNN based classification model to output the probability of objects present on the scene. We can model the relationship between the object classification output and the state of the cup using Bayes theorem. That is, $ p(z_t | x_t) \propto  p(z_t | x_t) p(x_t)$ where $z_t$ is the set of object classification outputs received at time $t$, $x_t$ is the state of the scene at time $t$,  and $p(z_t | x_t)$ is the likelihood of observing the scene given the scene is $x_t$. The likelihood function $p(z_t | x_t)$ may depend on various factors such as the appearance and geometry of the scene, the presence of other objects in the scene, camera angle, environment conditions and the uncertainty estimation capability of the DNN.~~
+%Replace with or add overall procedure.
+%
+To address these limitations, our paper proposes a simulation-based
+dataset generation methodology that allows for the systematic evaluation
+of uncertainty estimation methods in a controlled and reproducible
+environment. We use the heuristics of an expert to determine a set of
+constraints that govern the distribution of uncertainties in a simulated
+dataset. Based on these parameters we generate a subset of the dataset
+which satisfies the specified constraint. The entropy's of the estimated
+uncertainty of these datasets generated under constraint are compared
+with the entropy's of the nominal dataset. This comparison gives a
+better understanding on how the uncertainty behaves in different
+scenarios the embodies agent perceives in the real world. Examples of
+constraints are distance of object from the camera, lightning condition
+of the environment, texture of the environment, deformability of the
+objects etc. 
+%Consider the constraint of distance of objects, the expected behaviour will be when the object is far from the camera the uncertainty should be high as compared to the uncertainty of objectswhich are near to the camera. Based on this constraint we generate 2 subset of datasets  called far\_dataset and near\_dataset. Now we record the uncertainty estimated by different uncertainty estimation methods and then we verify how our assumption .
+
+The contributions of the work are : 
+\begin{inparaenum}[\itshape a\upshape)]
+	\item We identify the limitations of
+	current evaluation methods for deep learning models used in embodied
+	agents (machines that interact with their environment).
+	\item We propose a
+	new method to generate datasets for evaluating these models using
+	Blender, a 3D graphics software.
+	\item  We use these generated datasets to test and
+	compare the performance of different uncertainty estimation methods for
+	these models.
+\end{inparaenum}
+
+%\import{./}{limitation}
+
+\input{limitation.tex}
+
+
+\input{experiments.tex}
+
+\hypertarget{discussions}{%
+\section{Discussions}\label{discussions}}
+The advantage of the proposed methodology is that one can generate any new subset of the dataset based on a any new constraint. As uncertainty cannot be measured one can only evaluate the methods based on heuristics of human experts. The methodology enables such experts to develop test dataset and complete the evaluation. DNN's developed for perception of environments in embodied agents requires additional evaluation methods as compared to fixed environment tasks like medical diagnosis datasets.  One limitation of the methodology is that one has to generate the scenes in Blender which are similar to real world scenes. We have open sourced the dataset generation code here \url{https://github.com/DependableSoftware2-0/ConstraintBasedBlenderDatasetGenerator}. Future work we would like to add additional constraints to the dataset generator.
+
+\hypertarget{conclusions}{%
+\section{Conclusions}\label{conclusions}}
+Uncertainty estimates from the deep learning networks are used as observation models in different statistical models like filtering, state estimation and decision under uncertainty. The current evaluation methods focus majorly on robustness and reliability attributes but fail to evaluate their performance as required by statistical models. In this work, we focussed on addressing this gap and proposed an artificially generated dataset based on constraints to test the uncertainty estimates of deep neural networks.
+The proposed method generates this subset of a dataset based on a particular scenario that the DNN will observe when its deployed. For each subset, a human expert  provided the expected uncertainty estimate behavior.  The predicted and expected uncertainties are utilized to evaluate the performance of the DNN.
+We compared 3 state-of-art uncertainty estimation methods for the task of object classification of non-texture industrial objects. We trained the models using the dataset generated and for evaluating the uncertainties we generated 3 constraint-based dataset based on distance, lightning condition, background and deformation. 
+For each constraint dataset, we mentioned the expected uncertainty and then used the entropy of the predictions to compare with the hypothesis.
+Based on our hypothesis we learned that the uncertainty estimation methods learn about lightning conditions and object distance to camera however the methods dont learn about the shape of objects.
+We hope the proposed methodology helps in a better understanding of uncertainty estimation methods.
+
+
+\section{Acknowledgments}
+Deebul Nair gratefully acknowledges the ongoing support
+of the Bonn-Aachen International Center for Information Technology and a PhD
+scholarship from the Graduate Institute of the Bonn-Rhein-Sieg University. This
+work was supported by the European Union’s Horizon 2020 project SESAME (grant agreement No 101017258).
+
+
+\begin{acks}
+  The authors would like to thank Dr. Yuhua Li for providing the
+  matlab code of  the \textit{BEPS} method. 
+
+  The authors would also like to thank the anonymous referees for
+  their valuable comments and helpful suggestions. The work is
+  supported by the \grantsponsor{GS501100001809}{National Natural
+    Science Foundation of
+    China}{http://dx.doi.org/10.13039/501100001809} under Grant
+  No.:~\grantnum{GS501100001809}{61273304}
+  and~\grantnum[http://www.nnsf.cn/youngscientsts]{GS501100001809}{Young
+    Scientsts' Support Program}.
+
+\end{acks}

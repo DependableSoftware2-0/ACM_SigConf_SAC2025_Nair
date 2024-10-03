@@ -1,0 +1,142 @@
+
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width = \textwidth]{images/dataset_generation_v3.png}
+	\caption{Dataset generated with Blender under specific constraints a) Normal b) Far c) Dark d) Texture e) Deformed}
+	\label{fig:constraint_based_dataset_generation}
+\end{figure*}
+
+
+\hypertarget{constraint-based-subset-dataset-generation-using-blender}{%
+\section{Constraint based subset dataset generation using
+Blender}\label{constraint-based-subset-dataset-generation-using-blender}}
+
+We take inspiration from software testing and verification,
+where the human expert provides expected input and output to generate test cases
+that certify the performance of the software under various possible inputs. We expand on
+this idea to test uncertainty estimates of DNN's by generating
+constraint-based datasets that cover different scenarios that the DNN is
+expected to encounter during its operation. However, since the expected
+true uncertainty is not a quantifiable value it difficult for humans to
+provide the true expected uncertainty. However, humans are good with
+provided comparative judgments between uncertain situations, allowing us
+to generate pairs of datasets with varying degrees of uncertainty. For
+example, the uncertainty of objects which are far away from the camera
+is expected to be higher than objects nearer to it. We use simulation
+based dataset generator as it allows us to control various factors such
+as lighting conditions, object occlusion, and camera angle while
+generating datasets with varying degrees of uncertainty.
+
+
+%In real world, the embodied agent has to perceive the environment to make a decision. The environment has many variations like lighting, occlusion and scenarios where the images are blurry or the perceiving environment itself changes. For a deep learning model it is very much required to represent the uncertainty reliably in such scenarios to avoid failures and catastrophes. To represent the uncertainty in such scenarios the deep learning models must be evaluated on the datasets representing such scenarios. Collecting datasets for different real world scenarios is however not a suitable option because of the limitiations of time and cost. But all these scenarios can be simulated in a graphics software like blender and corresponding synthetic datasets can be generated.\\
+
+
+In this methodology, we try to leverage the Blender software to create simulation based synthetic datasets. Blender \cite{Blender}  is a free and open-source 3D creation software used for creating 3D models, animations, and visual effects. Its features such as modeling, texturing, and rendering make it a powerful tool for creating realistic 3D environments and objects. It is used to develop dataset for training deep learning models \cite{Denninger2023}. Blender's ability to automate and randomize certain aspects of the dataset generation process makes it particularly useful for training deep learning models that require large and diverse datasets. We begin our approach by enumerating the heuristics for a specific constraint from a deep learning expert. The defined heuristics are used to identify a set of modifiable  parameters in blender which are used to generate a nominal dataset and a subset of dataset which satisfies the specific constraint. 
+%Next we need the CAD models for the objects that are being perceived by the agent in the real world. These objects can either be designed by the user in the blender software itself or they can be imported from open sources libraries like ShapeNet \cite{shapenet2015} along with the object's textures. 
+In order to generate the datasets we need an environment, for this we create a scene in blender which consists of different components like, a background plane, a camera and a light source. By changing the parameters of these components such as intensity of light, focal length of camera, texture of background plane etc, we introduce variations to the datasets based on the heuristics defined by the expert. 
+%We have a configuration file for the modifiable parameters in blender. Using this configuration and the scene that we have created before, we import the cad models into the scene and render the images under different conditions. 
+We create a nominal dataset with all variations of the environment and different subset of datasets which satisfy particular constraints. In the nominal dataset all the objects present in the scene appear in normal conditions and there is all the variations introduced to the environment. On the other hand, for each subset of datasets we fix a particular variation and only generate those dataset which satisfies the constraint. For our experiments we generated  4 variations based on distance of object, lighting condition, background texture and deformation of objects.
+We selected a set of texture less industrial objects with 16 classes. All the objects had CAD models available which was the criteria for their selection. 
+%of lighting to create bright\_lighting, dark\_lighting datasets, for the distance constraint we introduce variation in the focal length parameter of the camera to create far\_distance, near\_distance datasets, Also we use the depth of field parameter of the camera to create blur constraint dataset. By changing the textures of the background plane we introduce a constraint for the textures and by using the modifiers present in the blender software we deform the shape of the object to create a deformation constraint. Finally, the generated nominal dataset is used for training of different deep learning models and the subsets of constriant datasets are used for evaluating the performance of the trained models based on entropy comparison.
+
+\begin{table*}[b]
+	\centering
+\begin{tabularx}{\textwidth} { 
+	|>{\hsize=.20\hsize}X
+	|| >{\hsize=.80\hsize}X| }
+	\hline
+	\textbf{Constraint}  & \textbf{Hypothesis} \\
+	\hline
+	Distance  & The uncertainty of objects far from camera  \textbf{shall} be higher than objects at nominal distance. \\
+	\hline
+	Lighting  & The uncertainty of objects in dark lighting  \textbf{shall} be higher than nominal lighting condition. \\
+	\hline
+	Texture & The uncertainty of objects on textured surface \textbf{shall} be same as uncertainty with plane surface. \\
+	\hline 
+	Deformation & The uncertainty of objects with deformation \textbf{shall} be higher than nominal objects. \\
+	\hline
+\end{tabularx}
+ \caption{Constraint dataset types and the expected uncertainty in those dataset}
+\label{table:constraints_table}
+\end{table*}
+\hypertarget{experiments}{%
+\section{Experiments}\label{experiments}}
+
+  In this work, we have selected four uncertainty estimation methods: cross-entropy model, MC dropout model \cite{gal2016dropout}, evidential deep learning model \cite{sensoy2018evidential} and ensembles model \cite{lakshminarayanan2017simple}. We used ResNet18 architecture for the cross-entropy, dropout and evidential models and for the ensembles model we have averaged the results of four deep learning models. For training the four models we have used PyTorch framework keeping the hyper-parameters same for all the models. For all the experiments we used the step learning rate scheduler with a learning rate of 0.001. We have chosen the batch size as 128 and a weight decay of 1e5. In the following experiments all the four models are trained with normal dataset 
+ \ref{fig:constraint_based_dataset_generation} and their performance is tested with the constraint datasets. For comparing and evaluating the expected behavior of the uncertainty estimation methods we compare the box plot of the entropy of the dataset. 
+ %In the following experiments we expect the uncertainty of test constraints to be greater than the uncertainty of training constraint. Also, for a good uncertainty estimation method it is expected that the entropy of incorrect predictions to be high. This implies that there is no high confidence values being assigned for the miss classifications. Thus from the following experiments, in the boxplots we expect to observe a clear separation between the entropy of correct and incorrect predictions.
+
+\subsection{RQ1: Do predicted uncertainties change based on object distance?}
+
+To evaluate the performance of uncertainty estimation methods in the scenario of distance of object to camera, we have created two constraints far and near. The hypothesis for the impact of object's distance condition is that when the models trained on normal conditions and tested with the far distance dataset we expect the uncertainty to be high. To check this hypothesis, we have trained four uncertainty estimation methods on normal conditions dataset and test their performance on far constraint dataset. The entropy of both the dataset is plotted in \cref{fig:entropy_far}
+%, in the case of cross-entropy, dropout and ensembles models, we can see that there is no separation for the entropy of correct and incorrect predictions of far distance constraint. Also, for the incorrect predictions these three models have low entropy values implying that the models are providing high confidence to the miss-classifications and thus their outputs cannot be trusted. 
+%On the other hand even-though 45\% of the incorrect predictions of far constraint lie in the region of correct predictions of far constraint, the separation is high when compared to other three models. Hence when compared to other other three model, the performance of evidential is good in far distance constraint. Also, from the table \ref{tab:accuracy_table}, for both far and near constraints, we can see that the accuracy of all the four models is very low. This represents that the models are not able to generalize the distance of objects.
+We observe that the the entropy for correctly classified (orange bar) predictions for all uncertainty estimation methods is higher than the near dataset. This confirms that the models learn make changes to the uncertainty based on the distance. We also observe the entropy range of correctly classified far dataset is very much near to entropy of miss-classifed (red bar) for cross-entropy, dropout and ensembles method, while there is highest separation for the evidential loss function. This is of particular importance because based on the entropy of the miss-classified classes different decision making algorithms are written.
+
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=\textwidth]{images/entropy_far_constraint.png}
+	\caption{Entropy comparison of uncertainty estimation methods for nominal and far distance dataset.}
+	\label{fig:entropy_far}
+\end{figure*}
+
+%In the case of near distance constraint, from the figure \ref{fig:entropy_near}, we can observe that there is a clear separation between correct and incorrect predictions of near constraint in the case of evidential model alone. Hence we consider the performance of evidential model to be good when compared to crossentropy, dropout and ensembles models. Also, we can see that both crossentropy and dropout models have high confidence values for the miss-classifications and thus the outputs from these two models cannot be trusted in the case of near distance constraint.
+
+%\begin{figure}[t]
+%	\centering
+%	\includegraphics[width=\textwidth]{images/entropy_near_constraint.png}
+%	\caption{Entropy near distance constraint}
+%	\label{fig:entropy_near}
+%\end{figure}
+
+\subsection{RQ2: Do predicted uncertainty change when lightning change?}
+
+\begin{figure*}[b]
+	\centering
+	\includegraphics[width=\textwidth]{images/entropy_dark_constraint.png}
+	\caption{Entropy comparison of uncertainty estimation methods for nominal and dark lighting dataset.}
+	\label{fig:entropy_dark}
+\end{figure*}
+
+
+To evaluate the performance of the uncertainty estimation methods on environmental lighting conditions, we have created the dark constraint dataset. The hypothesis for the impact of lighting conditions is that when the models trained on normal conditions and tested with dark lighting dataset,  we expect the uncertainty to be high in the dark dataset. The entropy of both the dataset are plotted in \cref{fig:entropy_dark}. 
+%For the bright constraint from the figure \ref{fig:entropy_bright}, we can see that in the case of crossentropy loss and dropout models there is no increase in uncertainty and also they have low entropy values for the incorrect predictions. This shows that both crossentropy loss and dropout models are providing high confidence values to the miss-classifications and thus they are not reliable. But in the case of evidential and ensembles models, we can clearly see there is a differentiation between the entropy of correct and incorrect predictions. This shows that both evidential and ensemble models are not providing high confidence values to the miss-classifications and thus the predictions of these two models can be trusted. On the overall because of the properties of evidential loss and dirichlet distribution we can see a maximum separation between the correct and incorrect predictions of bright constraint. Thus the performance of evidenital model is good when compared to other three models.
+
+%\begin{figure}[t]
+%    \centering
+%    \includegraphics[width=\textwidth]{images/entropy_bright_constraint.png}
+%    \caption{Entropy bright lighting constraint}
+%    \label{fig:entropy_bright}
+%\end{figure}
+
+%For the case of dark lighting constraint the predicted entropy value are plotted in figure \ref{fig:entropy_dark}. Both cross-entropy and dropout models have high confidence values for the miss-classifications, so the outputs from these two models cannot be trusted. In the case of evidential and Ensembles models we can see a clear separation between the entropy of correct and incorrect predictions. This shows that both evidential and ensemble models are not providing high confidence values to the miss-classifications and thus the outputs from these models can be trusted. As again, since the maximum separation for the entropy is seen in evidential model we consider it as the good performing method. Also, from the table \ref{tab:accuracy_table}, we can see that the accuracy of all the four models in dark constraint is very less implying that the models are not able to generalize on the dark constraint.
+We observe that our hypothesis is accepted for all the 4 methods. The entropy of the dark dataset is higher than the normal dataset. We also observe there is entropy of the correct predictions in the dark dataset is separated from the incorrect of the normal dataset. 
+
+
+\subsection{RQ3: Do predicted uncertainty change when the background change?}
+To evaluate the performance of uncertainty estimation methods in the scenario of change in background textures, we have created a constraint dataset called textures. The image backgrounds present in textures dataset does not belong to the image backgrounds present in normal conditions dataset, thereby ensuring that the images present in textures constraint are not seen during the training process. The hypothesis for the impact of environmental background conditions is, when the models trained on normal conditions are tested with the images present in textures constraint we expect the uncertainty to be same as the model has never seen such textures before, as we are learning the object and not the background. To check this hypothesis, we have trained four uncertainty estimation methods on normal conditions dataset and test their performance on textures constraint dataset. From the figure\cref{fig:entropy_textures}, 
+%For evidential model, we can see that there is an overlap for the entropy of correct and incorrect predictions and thus its performance is poor in textures constraint. In the case of cross entropy and dropout model, even though there a separation of the entropy of correct and incorrect predictions, the entropy of incorrect predictions is low implying that these two models are providing high confidence values to the miss classifications. Hence the output of these two models cannot be trusted. On the other hand, for ensembles model, we see a clear separation between the entropy of correct and incorrect predictions. Thus in the case of textures constraint, we consider the performance of ensembles model to be better when compared to evidential, cross-entropy and dropout models. 
+%Also, from the table \ref{tab:accuracy_table}, we can see that the accuracy of ensemble models is high in the case of textures constraint and results from the entropy are also same. 
+Based on the observations we can accept the hypothesis for all the constraints. We observe there is minimal change of entropy for correct predictions when the background changes.  We also observe ensemble has the highest change in entropy indicating ensembles also learn about the background.
+ 
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{images/entropy_textures_constraint.png}
+    \caption{Entropy comparison of uncertainty estimation methods for nominal and texture dataset.}
+    \label{fig:entropy_textures}
+\end{figure*}
+
+\subsection{RQ4: Do predicted uncertainty change when object's shape is deformed? }
+
+To evaluate the performance of uncertainty estimation methods in the scenario of change in the object's shape, we have created a constraint called deformation. In this experiment we have generated a normal data set  in which all the objects are in proper shape and used it for training. For the test case we have deformed the shape of the objects such that it is possible and seen in the real world scenarios. Using these deformed objects we have generated test data for deformation constraint. The hypothesis for the impact of object's deformation constraint is, that we expect some uncertaintyto increase in the deformed dataset. From the figure \ref{fig:entropy_deformation}.
+% we can see that in the case of evidential model alone a clear difference between the entropy of correct and incorrect predictions is observed. In the case of crossentropy, dropout and ensembles models, the separation is minimum and also, we can see that the entropy of incorrect predictions of deformation constraint is low. This implies that crossentropy, dropout and ensembles models are providing high confidence values for the miss-classifications and thus their outputs cannot be trusted. 
+We have to reject his hypothesis as you can see that when the objects are deformed there is very minimal change in entropy of the correct classified objects. This indicates that the uncertainty estimation methods are not sensitive to the objects shape.
+%Also, from the table \ref{tab:accuracy_table}, we can see that the accuracy of evidential model is high when compared to other three models, but all the three models, cross-entropy, dropout and ensemble models also have high accuracy. Based on the entropy results we found that these three models are assigning high confidence values to the incorrect predictions and thus the outputs from them cannot be trusted. From this we can say that relying on accuracy metric alone is not sufficient for comparing the performance of uncertainty estimation methods.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{images/entropy_deformation_constraint.png}
+    \caption{Entropy comparison of uncertainty estimation methods for nominal and deformed dataset.}
+    \label{fig:entropy_deformation}
+\end{figure*}
+

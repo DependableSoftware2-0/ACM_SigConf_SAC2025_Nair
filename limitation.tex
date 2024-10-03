@@ -1,0 +1,60 @@
+
+\hypertarget{limitation-of-evaluation-methods-of-uncertainty-estimation-of-dnn}{%
+\section{Limitation of evaluation methods of uncertainty estimation of
+DNN}\label{limitation-of-evaluation-methods-of-uncertainty-estimation-of-dnn}}
+
+In this section we discuss the different methods used to evaluate uncertainty estimation methods and their limitations with respect to their usage in embodied agents.
+
+\hypertarget{uncertainty-metric-based-evaluation}{%
+\subsection{Uncertainty metric based evaluation}
+\label{uncertainty-metric-based-evaluation}}
+
+The most common method for evaluating uncertainties is by using the
+different uncertainty metrics. The most commonly used metrics for
+discrete outputs are Brier score \cite{gal2016dropout} \cite{lakshminarayanan2017simple} \cite{liu2020simple}, expected calibration
+error \cite{carneiro2020deep} \cite{maddox2019simple}, negative log-likelihood and  \cite{loquercio2020general} \cite{wang2019deep} \cite{sensoy2018evidential}. Even though these metrics provide a
+quantitative measure of the estimated uncertainty, they fail to capture
+the entire range of possible outcomes and can be biased by model performance. The Brier score has the drawback of being
+influenced by the number of categories in the dataset \cite{assel2017brier}  . In
+multi-class classification tasks, the Brier score may be biased towards
+models that predict a larger number of classes, even if their
+predictions are less accurate \cite{rindt2022survival}. This can make it difficult to compare
+models with different numbers of classes. In case of
+expected calibration error the result depends upon the distribution of
+data across the number of bins used for calculation and the number of
+bins chosen affects the ECE algorithm  \cite{nixon2019measuring}. This means that
+models with low ECE can still have poorly calibrated predictions or be
+overconfident in its predictions. Negative log likelihood gives more
+preference to the correctness of the output than to the uncertainty
+correctness \cite{Ashukha2020PitfallsOI}. We still
+can use these metrics to evaluate the performance, in this work we use entropy as
+a measurement of the uncertainty and use it to compare dataset
+subsets.
+
+\hypertarget{robustness-evaluation-with-adversarial-attack-and-corrupted-dataset}{%
+\subsection{Robustness evaluation with adversarial and corrupted data}\label{robustness-evaluation-with-adversarial-attack-and-corrupted-dataset}}
+
+Another avenue for evaluating uncertainty estimation is by assessing the
+robustness of the DNN to adversarial attacks \cite{sensoy2018evidential} \cite{van2020uncertainty} \cite{liu2020simple}  and corrupted datasets  \cite{joppich2022classification} \cite{hendrycks2020augmix}. The expected behavior is that the
+uncertainty estimate of the adversarial attack dataset and the corrupted
+dataset is higher than the original, clean dataset. This is an example
+of using the heuristics of experts to evaluate uncertainty estimates. We
+expand on this idea by generating multiple subsets of clean and corrupted datasets
+which the embodied agent can see over its lifetime and use them as
+testing datasets.
+
+\hypertarget{reliability-evaluation-with-ood-dataset}{%
+\subsection{Reliability evaluation with Out-of-Distribution (OOD) dataset}\label{reliability-evaluation-with-ood-dataset}}
+
+In addition to robustness evaluation, reliability evaluation with
+out-of-distribution datasets is another important aspect of the
+evaluation of uncertainty estimation \cite{sensoy2018evidential} \cite{kristiadi2021learnable} \cite{kristiadi2020being}. In
+this evaluation, the expected outcome is that the uncertainty estimate
+of the OOD dataset is higher than that of the in-distribution dataset.
+This is also a valid assumption and is also an example of using expert
+heuristics to evaluate uncertainty estimates. We argue that for the
+reliability test not only out-of-distribution we also have to look into
+different subsets of in-distribution and verify the change of
+uncertainty.
+
+
